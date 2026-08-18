@@ -1052,6 +1052,22 @@ if($mute){
    타이틀은 waiting=true라 탭해도 진행되지 않으므로, 여기서 소리만 살아난다. */
 ['pointerdown','keydown'].forEach(t => document.addEventListener(t, function once(){
   document.removeEventListener(t, once);
+  /* ★첫 제스처에서 두 곡을 모두 «해금»한다(2026-08-19 아이폰 딜레이 수리).
+     아이폰은 손가락이 닿은 순간에만 play()를 허용하는데, 기쁨 화면은 빛 타이머(1.4초)가
+     음악을 켠다 — 타이머는 제스처가 아니라 막히고, 다음 탭까지 기다렸다 켜졌다(=딜레이).
+     무음으로 켰다 즉시 멈추면 소리 없이 허가만 남는다. 이후 타이머가 켜도 즉시 난다. */
+  for(const k in TRACKS){
+    const el = TRACKS[k];
+    if(!el || !el.paused) continue;
+    try{
+      el.muted = true;
+      const pr = el.play();
+      if(pr) pr.catch(() => {});   // pause에 끊긴 play는 조용히 삼킨다
+      el.pause();
+      el.currentTime = 0;
+      el.muted = false;
+    }catch(e){ el.muted = false; }
+  }
   if(!muted) bgmTo(document.body.className);
 }, true));
 
