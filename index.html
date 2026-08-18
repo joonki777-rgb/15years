@@ -1046,15 +1046,17 @@ if($mute){
   };
 }
 /* 첫 제스처에서 출력 허가(resume) — 타이틀은 waiting=true라 탭해도 진행되지 않으므로 소리만 살아난다. */
-['pointerdown','keydown'].forEach(t => document.addEventListener(t, function once(){
-  document.removeEventListener(t, once);
+/* ⚠️아이폰은 「대는 순간」(pointerdown)을 오디오 허가로 안 쳐주는 버전이 있다 — 「떼는 순간」(touchend)·click만 인정.
+   그래서 넷 다 듣는다(2026-08-19 밤 실기: ♪ 버튼을 직접 누르지 않으면 영영 안 켜지던 증상). */
+['pointerdown','touchend','click','keydown'].forEach(t => document.addEventListener(t, function once(){
+  document.removeEventListener(t, once, true);
   BGM.unlock();
   if(!muted) bgmTo(document.body.className);
 }, true));
-/* 아이폰은 전화·앱 전환 뒤 오디오가 'interrupted'로 얼 수 있다 — 아무 터치에서나 살려낸다 */
-document.addEventListener('pointerdown', () => {
+/* 전화·앱 전환 뒤 오디오가 얼 수 있다 — 어떤 터치에서든 살려낸다(위와 같은 이유로 touchend·click 포함) */
+['pointerdown','touchend','click'].forEach(t => document.addEventListener(t, () => {
   if(BGM.ctx && BGM.ctx.state !== 'running' && !muted) BGM.ctx.resume().catch(() => {});
-}, true);
+}, true));
 
 function next(){
   if(waiting) return;
