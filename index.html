@@ -1095,7 +1095,7 @@ function render(sc, replay, savedDeltas){
   setTimeout(() => {
     const cue = document.getElementById('cue');
     if(cue && document.body.scrollHeight - window.innerHeight > 8)
-      cue.textContent = '아래로 밀어 마저 읽고, 화면을 탭하세요';
+      cue.textContent = '아래로 밀어 마저 읽고, 화면을 누르세요';
     paintMute();   // 화면이 그려진 뒤라야 타이틀의 소리 안내를 찾을 수 있다
   }, 0);
   const art = sc.art ? artHTML(sc.art) : '';
@@ -1105,7 +1105,7 @@ function render(sc, replay, savedDeltas){
     const prog = chNo ? `<div class="chapno">${chNo} / 8</div>` : '';
     const cost = (sc.cost && adult())
       ? `<div class="cost">지난 ${sc.cost.label} 기본 양육비 —${sc.cost.won}만 원</div>` : '';
-    $stage.innerHTML = `<div class="cover">${art}${prog}<h1>${sc.title}</h1>${sc.stat ? `<div class="stat">${sc.stat}</div>` : ''}${cost}</div><div id="cue">화면을 탭하세요</div>`;
+    $stage.innerHTML = `<div class="cover">${art}${prog}<h1>${sc.title}</h1>${sc.stat ? `<div class="stat">${sc.stat}</div>` : ''}${cost}</div><div id="cue">화면을 누르면 다음으로 넘어갑니다</div>`;
     return;
   }
   if(sc.t === 'end'){ renderEnd(sc.kind); return; }
@@ -1119,7 +1119,7 @@ function render(sc, replay, savedDeltas){
         <p class="note" style="margin:0 0 16px">당신의 15년을 결정하기 전에,<br>한 번 함께 살아봅시다.<br>키우기로 해도 좋고, 안 키우기로 해도 좋습니다.</p>
         <button id="startbtn">15년 살아보기</button>
         <button id="resumebtn" style="display:none">이어하기</button>
-        <p class="note" id="soundtip" style="display:none;margin:12px 0 0">♪ 화면을 한 번 터치하면 음악이 나옵니다</p>
+        <p class="note" id="soundtip" style="display:none;margin:12px 0 0">♪ 화면을 한 번 누르면 음악이 나옵니다</p>
         ${staleSave ? `<p class="note" style="margin:14px 0 0">이전에 하던 기록이 있었지만, 그 사이 내용이 바뀌어 이어할 수 없습니다.<br>고장이 아닙니다 — 처음부터 시작해 주세요.</p>` : ''}
         <div class="ph" style="text-align:left">
           이 이야기에는 노화와 이별이 나옵니다. 한 자리에 15분쯤 걸립니다.<br>
@@ -1221,7 +1221,7 @@ function render(sc, replay, savedDeltas){
     $stage.appendChild(wrap);
     return;
   }
-  $stage.insertAdjacentHTML('beforeend', '<div id="cue">화면을 탭하세요</div>');
+  $stage.insertAdjacentHTML('beforeend', '<div id="cue">화면을 누르면 다음으로 넘어갑니다</div>');
 }
 
 /* 잠금 = ①재화 없음(need) ②여력 없음(min, §4 잠금 ②) */
@@ -1245,7 +1245,7 @@ function showResult(c, ci, replay, savedDeltas){
   $stage.innerHTML =
     `<p class="line">${fill(c.res)}</p>` +
     (deltas.length ? `<p class="delta">${deltas.join(' · ')}</p>` : '') +
-    '<div id="cue">화면을 탭하세요</div>';
+    '<div id="cue">화면을 누르면 다음으로 넘어갑니다</div>';
 }
 
 /* 몽타주 (§5-c ③) — 상실이 아니라 감사 프레임으로 8장에 진입시킨다.
@@ -1257,7 +1257,7 @@ function renderMontage(){
     <p class="line" style="text-align:center;font-size:24px">15년.</p>
     <p class="line note" style="text-align:center">그동안 당신이 한 일들입니다.</p>
     <ul class="montage">${items}</ul>
-    <div id="cue">화면을 탭하세요</div>`;
+    <div id="cue">화면을 누르면 다음으로 넘어갑니다</div>`;
 }
 
 /* 준비 리스트 — 새로 조사하지 않는다. 지나온 상태에서 생성(§6, 제작비 ~0) */
