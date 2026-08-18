@@ -111,10 +111,13 @@
     background:#1b1b1fee; border-radius:10px; padding:12px 16px; cursor:pointer; display:none;
   }
   #back:active{background:#ffffff14}
+  /* 선택지 위에 떠 있는 버튼이라 클수록 본문을 가린다(2026-08-19 루쵸 실기 발견).
+     자주 누르는 버튼이 아니라 «있어야 하는» 버튼 — 작아도 되고, 오터치가 최악인 버튼이라 작은 게 오히려 안전(confirm도 있다) */
   #give{
     position:fixed; right:14px; bottom:80px; z-index:3;
-    font-size:16px; color:var(--fg); border:1px solid rgba(255,255,255,.30);
-    background:#1b1b1fee; border-radius:10px; padding:12px 16px; cursor:pointer; display:none;
+    font-size:13px; color:var(--fg); border:1px solid rgba(255,255,255,.30);
+    background:#1b1b1fee; border-radius:10px; padding:8px 12px; cursor:pointer; display:none;
+    max-width:46vw; text-align:center; line-height:1.5;
   }
   #name{margin-top:22px;display:flex;gap:12px;align-items:center}
   #name input{all:unset;border-bottom:1px solid var(--warm);padding:6px 4px;width:170px;
@@ -934,6 +937,24 @@ function setMood(m, to){
    무거운 화면은 무음이라 «음악이 사라지는 것»이 무게를 만든다 — §5를 어기는 게 아니라 강화한다.
    구조상 8장(배웅·mood night)에는 절대 깔리지 않는다. */
 const TRACKS = { major: document.getElementById('bgm'), minor: document.getElementById('bgm2') };
+/* ★아이폰 사파리 대응 2건 (2026-08-19 실기 침묵 사고 — 무음 스위치를 풀어도 안 들렸다)
+   ①일부 개체가 큰 data: 오디오를 조용히 못 읽는다 → Blob URL로 바꿔 물린다
+   ②volume이 읽기 전용(음량은 하드웨어 버튼만)이라 페이드가 영영 안 끝나고,
+     순차 전환의 「끄고 나서 켠다」에서 «켠다»까지 같이 죽는다 → 아래 volLocked·안전핀 참조 */
+for(const k in TRACKS){
+  const el = TRACKS[k];
+  if(!el) continue;
+  const dsrc = el.getAttribute('src') || '';
+  if(dsrc.startsWith('data:')){
+    try{
+      const bin = atob(dsrc.split(',')[1]);
+      const u8 = new Uint8Array(bin.length);
+      for(let j = 0; j < bin.length; j++) u8[j] = bin.charCodeAt(j);
+      el.src = URL.createObjectURL(new Blob([u8], {type:'audio/mpeg'}));
+    }catch(e){}
+  }
+}
+let volLocked = false;
 const $mute = document.getElementById('mute');
 const BGM_VOL = 0.32;
 let muted = false;
@@ -965,6 +986,7 @@ function bgmPick(mood){
 let blocked = false;
 // ⚠️초기 volume은 1.0이다 — 그대로 두면 시작 직후 두 곡이 겹쳐 들리고, 0까지 내려가는 데 2.2초가 걸린다(실사고)
 for(const k in TRACKS) if(TRACKS[k]) TRACKS[k].volume = 0;
+volLocked = !!TRACKS.major && TRACKS.major.volume !== 0;   // 0을 썼는데 0이 아니다 = 잠김(아이폰)
 const fadeTimers = {};
 function fadeTo(el, key, target, done){
   if(!el) return;
@@ -973,10 +995,17 @@ function fadeTo(el, key, target, done){
     el.play().then(() => { if(blocked){ blocked = false; paintMute(); } })
              .catch(() => { if(!blocked){ blocked = true; paintMute(); } });
   }
+  if(volLocked){            // 아이폰: 페이드 불가 → 즉시 전환. 음량은 기기 버튼 몫이라 원곡보다 크게 들린다(감수)
+    if(target === 0) el.pause();
+    if(done) done();
+    return;
+  }
+  let ticks = 0;             // 안전핀: 음량이 안 움직이는 «어떤» 환경에서도 done은 반드시 불려야 한다(2026-08-19)
   fadeTimers[key] = setInterval(() => {
     const d = target - el.volume;
-    if(Math.abs(d) < 0.025){
-      el.volume = target; clearInterval(fadeTimers[key]);
+    if(Math.abs(d) < 0.025 || ++ticks > 80){
+      try{ el.volume = target; }catch(e){}
+      clearInterval(fadeTimers[key]);
       if(target === 0) el.pause();
       if(done) done();
       return;
