@@ -1061,6 +1061,15 @@ if($mute){
   BGM.unlock();
   if(!muted) bgmTo(document.body.className);
 }, true));
+/* 화면을 껐다 켜거나 앱을 갔다 오면 아이폰이 오디오를 얼려둔다(15분짜리 게임 = 자동 잠금과 반드시 만난다).
+   돌아온 순간 즉시 소생 + 상태 변화 시 버튼 표기 갱신(2026-08-19 루쵸 실기 「음악이 멈췄다」). */
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && BGM.ctx){
+    if(BGM.ctx.state !== 'running' && !muted) BGM.ctx.resume().catch(() => {});
+    paintMute();
+  }
+});
+if(BGM.ctx) BGM.ctx.onstatechange = () => paintMute();
 /* 전화·앱 전환 뒤 오디오가 얼 수 있다 — 어떤 터치에서든 살려낸다(위와 같은 이유로 touchend·click 포함) */
 ['pointerdown','touchend','click'].forEach(t => document.addEventListener(t, () => {
   if(BGM.ctx && BGM.ctx.state !== 'running' && !muted) BGM.ctx.resume().catch(() => {});
@@ -1118,7 +1127,8 @@ function render(sc, replay, savedDeltas){
         ${staleSave ? `<p class="note" style="margin:14px 0 0">이전에 하던 기록이 있었지만, 그 사이 내용이 바뀌어 이어할 수 없습니다.<br>고장이 아닙니다 — 처음부터 시작해 주세요.</p>` : ''}
         <div class="ph" style="text-align:left">
           이 이야기에는 노화와 이별이 나옵니다. 한 자리에 15분쯤 걸립니다.<br>
-          장면은 실제 파양 <b>고려</b> 이유 통계에서 왔고, 금액 일부는 아직 자리표시입니다.<br>          소리가 나오지 않으면 무음 모드와 음량을 확인해 주세요.<br>
+          장면은 실제 파양 <b>고려</b> 이유 통계에서 왔고, 금액 일부는 아직 자리표시입니다.<br>          중간에 닫아도 괜찮습니다 — 다시 열면 그 자리에서 이어집니다.<br>
+          소리가 나오지 않으면 무음 모드와 음량을 확인해 주세요.<br>
 
           글과 이미지 제작에 AI를 사용했습니다.
         </div>
@@ -1152,8 +1162,10 @@ function render(sc, replay, savedDeltas){
     swallow(sb);
     sb.onclick = ev => {
       ev.stopPropagation();
-      // 지워질 기록이 있으면 먼저 묻는다(루쵸 2026-08-20). 새 방문자에게는 안 묻는다.
-      const hasRun = frames.length > 0 || !!loadGame() || S.track !== null;
+      /* 지워질 기록이 있으면 먼저 묻는다. ⚠️frames.length로 재면 안 된다(2026-08-19 실사고):
+         트랙을 고르기 전 프롤로그 몇 화면을 「기록」으로 세서, 시작→뒤로→다시 시작만 해도 경고가 떴다.
+         물을 가치가 있는 기록 = 트랙을 고른 뒤의 진행(메모리) 또는 유효한 저장(디스크)뿐. */
+      const hasRun = S.track !== null || !!loadGame();
       if(hasRun && !confirm('저장된 기록을 지우고 처음부터 시작합니다. 괜찮으세요?')) return;
       clearGame(); resetState(); waiting = false;
       lastAdvance = Date.now(); next(); };
