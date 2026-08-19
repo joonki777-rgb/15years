@@ -14,7 +14,9 @@
 <meta property="og:image" content="https://joonki777-rgb.github.io/15years/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <style>
-  :root{ --bg:#0b0b0c; --fg:#e8e6e1; --dim:#7d7a74; --line:#26262a; --warm:#c9a227; --glow:transparent; }
+  :root{ --bg:#0b0b0c; --fg:#e8e6e1; --dim:#a5a19a; --line:#26262a; --warm:#c9a227; --glow:transparent; }
+  /* --dim 7d7a74→a5a19a (2026-08-19 어머니 「회색 글씨 안 보임」): 구값은 기쁨 배경에서 대비 4.24로
+     WCAG AA(4.5) 미달이었다. 신값 = 전 배경 7:1급, 본문(15.8)과의 위계는 유지. */
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
   body{
@@ -165,7 +167,7 @@
    ⚠️ 금액(에어팟 22만·목걸이 4만·펫시터 5만·입양 책임비)은 전부 자리표시 — 실측 확인 전. */
 
 const PH = '<span class="note">※ 이 화면의 금액은 자리표시 수치입니다(실측 확인 전).</span>';
-const PH_SURG = '<span class="note">※ 슬개골 수술비는 공식 평균이 존재하지 않습니다 — 조사된 범위(45만~200만 원) 안의 값입니다.</span>';
+const PH_SURG = '<span class="note">※ 슬개골 수술비는 공식 평균이 없습니다 — 조사 범위 45만~200만 원.</span>';
 
 let S = { track:null, name:'', 정보:false, 안고재움:false, 보험:false,
           여유:10, 통장:0, 유대:0, 약속:5, 시간:10,
@@ -552,7 +554,6 @@ const SCENES = [
 
   {t:'choice', track:'both', mood:'night', lines:[
     '새 집 첫날 밤. 짐 상자 사이에서 {N}이 자리를 못 찾고 서성입니다.',
-    '화장실도, 밥그릇 자리도, 창밖 소리도 전부 처음입니다.',
     '배변 자리를 처음부터 다시 가르쳐야 합니다. 새 바닥에는 아무 표시도 없으니까요.',
     '낮에 혼자 두면 여기서도 짖을 겁니다. 이 건물 이웃들은 아직 얼굴도 모릅니다.'], choices:[
     {label:'㉠ 처음부터 다시 한다', fx:{여유:-2, 시간:-2, 유대:+1},
@@ -668,7 +669,7 @@ const SCENES = [
     {label:'㉡ 한 달에 한 번', fx:{시간:-1, 유대:+1},
      res:'한 달 만에 보면 달라진 게 보입니다. 매일 보는 엄마는 모르는 것들이요.'},
     {label:'㉢ 영상통화로 대신한다',
-     res:'{N}은 화면 속 목소리에 귀를 세웁니다. 그리고 방 안을 두리번거립니다.<br>당신을 찾는 겁니다. 화면에 있는 줄은 모릅니다.'}]},
+     res:'{N}은 화면 속 목소리에 귀를 세우고, 방 안을 두리번거립니다.<br>당신을 찾는 겁니다. 화면에 있는 줄은 모릅니다.'}]},
 
   /* ★기쁨 선택(§5-b ⑤) — 전부 정답·손해 0.
      선택지가 통째로 빠져 있어 여기서 게임이 멈췄다(2026-08-17 완주 테스트로 발견). */
