@@ -1292,7 +1292,12 @@ function prepList(){
    국내 무수수료·닉네임 경로가 사라졌으므로 수단 선택이 곧 신원(실명군/익명군) 결정이 된다.
    현행 추천 = 투네이션(toon.at) — 국내 결제 되고, 후원자에게는 닉네임만 보인다(toss.me와 같은 성질).
    Ko-fi는 원화 결제 불가, Buy Me a Coffee는 한국 정산 불가, GitHub Sponsors는 실명군 확정. 상세 = 핸드오프 §5-b. */
-const SUPPORT_URL = 'https://toon.at/donate/15years';   // 투네이션(2026-08-22 개설). ⚠️후원자도 투네이션 로그인 필요 — 벽 높음, 기대치 낮게
+/* ★후원 = 계좌번호 직접 표기(루쵸 2026-08-22 결정).
+   토스아이디·카카오페이 개인 링크는 서비스 종료, 남은 플랫폼(투네이션·크티 등)은 «후원자도 가입»이라 벽이 높았다
+   (투네이션은 가입+캐시 충전 2단계 — 8/22 실측 후 폐기). 계좌는 벽 0. 입금 전용 계좌로, 잔액 0 유지.
+   실명(예금주)은 GitHub 계정으로 이미 공개돼 있으므로 새로 여는 결정이 아니다. */
+const SUPPORT_ACCOUNT = { bank: '토스뱅크', number: '1002-7321-7849', holder: '김준기' };   // 입금 전용 계좌(2026-08-22 개설, 잔액 0 유지)
+const SUPPORT_URL = '';   // 플랫폼 링크를 쓰게 되면 여기(계좌가 비어 있을 때만 표시)
 
 /* ★공유 — 배포 주소가 정해지면 여기 한 줄.
    카카오 SDK는 «안 쓴다»: 외부 의존이 부활하고, 앱 키 발급이 실명 등록이라
@@ -1318,7 +1323,20 @@ const SHARE = `
     ${SURVEY_URL ? `<p class="note" style="margin:14px 0 0"><a href="${SURVEY_URL}" target="_blank" rel="noopener" style="color:var(--dim)">한 문항만 답해주실 수 있나요 →</a></p>` : ''}
   </div>`;
 
-/* 공유는 renderEnd가 innerHTML을 갈아끼운 «뒤»에 배선해야 한다(요소가 그때 생긴다). */
+/* 클립보드 — 공유 링크·계좌번호가 같이 쓴다.
+   ⚠️순서가 중요하다. clipboard API는 «https 또는 localhost»에서만 살아 있고,
+   그 조건을 만족해도 권한이 막히면 던진다(실측: 헤드리스에서 던졌다).
+   그러니 실패를 곧장 비상경로로 보내지 말고 execCommand로 한 번 더 받아낸다. LAN(http) 검수는 늘 이 경로다. */
+async function copyText(t){
+  try { if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(t); return true; } } catch(e){}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand('copy'); ta.remove(); return ok;
+  } catch(e){ return false; }
+}
+/* 공유·후원 버튼은 renderEnd가 innerHTML을 갈아끼운 «뒤»에 배선해야 한다(요소가 그때 생긴다). */
 function wireShare(){
   const b = document.getElementById('sharebtn');
   if(!b) return;
@@ -1332,27 +1350,22 @@ function wireShare(){
     }
     // 데스크톱·구형 폴백. ⚠️navigator.clipboard는 https에서만 산다 —
     //   LAN 검수는 http라 여기서 늘 아래 execCommand 경로로 떨어진다(실측).
-    const t = SHARE_TEXT + '\n' + SHARE_URL;
-    // ⚠️순서가 중요하다. clipboard API는 «https 또는 localhost»에서만 살아 있고,
-    //   그 조건을 만족해도 권한이 막히면 던진다(실측: 헤드리스에서 던졌다).
-    //   그러니 실패를 곧장 비상경로로 보내지 말고 execCommand로 한 번 더 받아낸다.
-    //   루쵸 폰 검수는 LAN(http)이라 늘 execCommand 경로다.
-    let copied = false;
-    try { if(navigator.clipboard && window.isSecureContext){
-            await navigator.clipboard.writeText(t); copied = true; } } catch(e){}
-    if(!copied){
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
-        document.body.appendChild(ta); ta.select();
-        copied = document.execCommand('copy'); ta.remove();
-      } catch(e){}
-    }
+    const copied = await copyText(SHARE_TEXT + '\n' + SHARE_URL);
     toast(copied ? '링크를 복사했습니다.' : SHARE_URL);   // 둘 다 막히면 주소를 눈으로 준다
   };
+  const c = document.getElementById('acctbtn');
+  if(c){ swallow(c); c.onclick = async ev => { ev.stopPropagation();
+    const ok = await copyText(SUPPORT_ACCOUNT.number);
+    toast(ok ? '계좌번호를 복사했습니다.' : SUPPORT_ACCOUNT.number); }; }
 }
 
-const SUPPORT = SUPPORT_URL ? `
+const SUPPORT = SUPPORT_ACCOUNT.number ? `
+  <div class="support">
+    <p class="supporttitle">유익하셨다면 후원해 주세요.</p>
+    <p class="note" style="margin:0 0 14px">광고 없이 만들었습니다.<br>더 많은 공공의 이익을 위한 서비스 개발에 쓰입니다.</p>
+    <p class="line" style="margin:0 0 12px;text-align:center">${SUPPORT_ACCOUNT.bank} <b>${SUPPORT_ACCOUNT.number}</b><br><span class="note">예금주 ${SUPPORT_ACCOUNT.holder}</span></p>
+    <button class="supportbtn" id="acctbtn">계좌번호 복사</button>
+  </div>` : SUPPORT_URL ? `
   <div class="support">
     <p class="supporttitle">유익하셨다면 후원해 주세요.</p>
     <p class="note" style="margin:0 0 14px">광고 없이 만들었습니다.<br>더 많은 공공의 이익을 위한 서비스 개발에 쓰입니다.</p>
