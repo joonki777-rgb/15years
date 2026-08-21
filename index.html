@@ -1157,7 +1157,7 @@ function render(sc, replay, savedDeltas){
       clearGame(); resetState(); waiting = false;
       lastAdvance = Date.now(); next(); };
     /* 타이틀에도 공유 — 확산 축은 「부모가 아이에게 보내는 링크」(§3)인데, 보내는 사람은 완주하지 않는다.
-       엔딩 버튼과 같은 말(「링크 보내기」)·같은 코드. 시작 버튼과 경쟁하지 않게 note 톤 링크로(루쵸 2026-08-22). */
+       엔딩 버튼과 같은 말(「공유하기」 — 루쵸 선택, 구 「링크 보내기」)·같은 코드. 시작 버튼과 경쟁하지 않게 note 톤 링크로(루쵸 2026-08-22). */
     wireShare();
     return;
   }
@@ -1321,8 +1321,8 @@ const SHARE = `
   <div class="support">
     <p class="supporttitle">보낼 사람이 떠오른다면</p>
     <p class="note" style="margin:0 0 14px">${SHARE_URL
-      ? '「키우자」는 말이 오간 집에,<br>이 15분을 먼저 보내주세요.'
-      : '「키우자」는 말이 오간 집에,<br>이 15분을 먼저 보내주세요.<br><span style="opacity:.55">(공유 주소 준비 중)</span>'}</p>
+      ? '「키우자」는 말이 오간 집에,<br>「15년」을 먼저 보내주세요.'
+      : '「키우자」는 말이 오간 집에,<br>「15년」을 먼저 보내주세요.<br><span style="opacity:.55">(공유 주소 준비 중)</span>'}</p>
     ${SHARE_URL ? '<button class="supportbtn sharebtn" id="sharebtn">공유하기</button>' : ''}
     ${SURVEY_URL ? `<p class="note" style="margin:14px 0 0"><a href="${SURVEY_URL}" target="_blank" rel="noopener" style="color:var(--dim)">한 문항만 답해주실 수 있나요 →</a></p>` : ''}
   </div>`;
