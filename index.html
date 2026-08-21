@@ -1110,6 +1110,7 @@ function render(sc, replay, savedDeltas){
         <button id="startbtn">15년 살아보기</button>
         <button id="resumebtn" style="display:none">이어하기</button>
         <p class="note" id="soundtip" style="display:none;margin:12px 0 0">♪ 화면을 한 번 누르면 음악이 나옵니다</p>
+        ${SHARE_URL ? `<p class="note" style="margin:12px 0 0"><a href="#" id="sharebtn" style="color:var(--dim)">공유하기 →</a></p>` : ''}
         ${staleSave ? `<p class="note" style="margin:14px 0 0">이전에 하던 기록이 있었지만, 그 사이 내용이 바뀌어 이어할 수 없습니다.<br>고장이 아닙니다 — 처음부터 시작해 주세요.</p>` : ''}
         <div class="ph" style="text-align:left">
           이 이야기에는 노화와 이별이 나옵니다. 한 자리에 15분쯤 걸립니다.<br>
@@ -1155,6 +1156,9 @@ function render(sc, replay, savedDeltas){
       if(hasRun && !confirm('저장된 기록을 지우고 처음부터 시작합니다. 괜찮으세요?')) return;
       clearGame(); resetState(); waiting = false;
       lastAdvance = Date.now(); next(); };
+    /* 타이틀에도 공유 — 확산 축은 「부모가 아이에게 보내는 링크」(§3)인데, 보내는 사람은 완주하지 않는다.
+       엔딩 버튼과 같은 말(「링크 보내기」)·같은 코드. 시작 버튼과 경쟁하지 않게 note 톤 링크로(루쵸 2026-08-22). */
+    wireShare();
     return;
   }
 
@@ -1319,7 +1323,7 @@ const SHARE = `
     <p class="note" style="margin:0 0 14px">${SHARE_URL
       ? '「키우자」는 말이 오간 집에,<br>이 15분을 먼저 보내주세요.'
       : '「키우자」는 말이 오간 집에,<br>이 15분을 먼저 보내주세요.<br><span style="opacity:.55">(공유 주소 준비 중)</span>'}</p>
-    ${SHARE_URL ? '<button class="supportbtn sharebtn" id="sharebtn">링크 보내기</button>' : ''}
+    ${SHARE_URL ? '<button class="supportbtn sharebtn" id="sharebtn">공유하기</button>' : ''}
     ${SURVEY_URL ? `<p class="note" style="margin:14px 0 0"><a href="${SURVEY_URL}" target="_blank" rel="noopener" style="color:var(--dim)">한 문항만 답해주실 수 있나요 →</a></p>` : ''}
   </div>`;
 
@@ -1342,7 +1346,7 @@ function wireShare(){
   if(!b) return;
   swallow(b);                                  // 탭이 다음 화면으로 새지 않게
   b.onclick = async ev => {
-    ev.stopPropagation();
+    ev.stopPropagation(); ev.preventDefault();   // 타이틀에선 <a href="#"> — 스크롤 점프 방지
     const data = { title: '15년 — 강아지 한 마리와 사는 일', text: SHARE_TEXT, url: SHARE_URL };
     if(navigator.share){
       try { await navigator.share(data); } catch(e) {}   // 사용자가 취소하면 조용히 넘어간다
